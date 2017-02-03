@@ -7,6 +7,8 @@
 //
 
 #import "AppDelegate.h"
+#import "NavManager.h"
+#import "TwitterClient.h"
 
 @interface AppDelegate ()
 
@@ -17,6 +19,11 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    
+    CGRect frame = [UIScreen mainScreen].bounds;
+    self.window = [[UIWindow alloc] initWithFrame:frame];
+    self.window.rootViewController = [[NavManager shared] rootViewController];
+    [self.window makeKeyAndVisible];
     return YES;
 }
 
@@ -47,5 +54,9 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+    [[TwitterClient sharedInstance] handleAppOpenUrl:url];
+    
+    return YES;
+}
 @end

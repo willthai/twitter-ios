@@ -1,15 +1,13 @@
 //
-//  ViewController.h
+//  LogoutViewController.h
 //  twitter
 //
-//  Created by William Thai on 1/30/17.
+//  Created by William Thai on 2/2/17.
 //  Copyright © 2017 Y.CORP.YAHOO.COM\willthai. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
-
+@interface LogoutViewController : UIViewController
 
 @end
-
