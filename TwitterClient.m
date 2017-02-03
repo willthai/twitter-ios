@@ -7,6 +7,7 @@
 //
 
 #import "TwitterClient.h"
+#import "User.h"
 
 NSString * const kTwitterConsumerKey = @"GSaQdYEzBZ94pNfjO8D2wDu57";
 NSString * const kTwitterConsumerSecret = @"LUlISFueczow3IWTQAtOD33M1ONR0XlpEFTAFR1KLK8yZGufFl";
@@ -17,6 +18,10 @@ NSString * const kCallbackUrl = @"twitterauth://request";
 NSString * const kOAuthAthorizeUrl = @"https://api.twitter.com/oauth/authorize?oauth_token=";
 NSString * const kVerifyCredPath = @"1.1/account/verify_credentials.json";
 
+@interface TwitterClient()
+
+@property (nonatomic, strong) void (^completedLoginCallback)(User *user, NSError *error);
+@end
 @implementation TwitterClient
 + (TwitterClient *) sharedInstance {
     static TwitterClient *instance = nil;
@@ -29,7 +34,10 @@ NSString * const kVerifyCredPath = @"1.1/account/verify_credentials.json";
     }
     return instance;
 }
-- (void) login {
+// callback example
+- (void) login:(void (^)(User *user, NSError *error))callback {
+    self.completedLoginCallback = callback;
+
     [[self requestSerializer] removeAccessToken];
     [self fetchRequestTokenWithPath:kOAuthReqTokenPath method:@"GET" callbackURL:[NSURL URLWithString:kCallbackUrl] scope:nil success:^(BDBOAuth1Credential *requestToken) {
         NSLog(@"got token");
@@ -40,6 +48,8 @@ NSString * const kVerifyCredPath = @"1.1/account/verify_credentials.json";
         [[UIApplication sharedApplication] openURL:authUrl options:options completionHandler:^(BOOL success) {
             if (!success) {
                 NSLog(@"Failed to open url: %@", authUrl);
+            } else {
+                NSLog(@"Success got user info");
             }
         }];
         
@@ -54,8 +64,12 @@ NSString * const kVerifyCredPath = @"1.1/account/verify_credentials.json";
         NSLog(@"Got access token");
         [self.requestSerializer saveAccessToken:accessToken];
         [self GET:kVerifyCredPath parameters:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-            NSDictionary *user = [[NSDictionary alloc] initWithDictionary:responseObject];
-            NSLog(@"user:%@", user[@"name"]);
+            User *user = [[User alloc] initWithDictionary:responseObject];
+            self.currentUser = user;
+            NSLog(@"user:%@", user.name);
+
+            // execute the callback
+            self.completedLoginCallback(user, nil);
         } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
             NSLog(@"failed to verify credentials");
         }];
@@ -63,4 +77,5 @@ NSString * const kVerifyCredPath = @"1.1/account/verify_credentials.json";
         NSLog(@"failed to get access token");
     }];
 }
+
 @end

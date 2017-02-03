@@ -9,6 +9,7 @@
 #import "TweetListViewController.h"
 #import "NavManager.h"
 #import "TwitterClient.h"
+#import "User.h"
 
 @interface TweetListViewController () <UITableViewDataSource>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
@@ -20,16 +21,21 @@
 
     [super viewDidLoad];
     self.tableView.dataSource = self;
-    [[TwitterClient sharedInstance] login];
+    [[TwitterClient sharedInstance] login:^(User *user, NSError *error) {
+        [self completedLogin:user];
+    }];
     // Do any additional setup after loading the view from its nib.
 }
-- (void) fetchData {
 
+- (void) completedLogin:(User *) user {
+    NSLog(@"completed Login, refresh views");
+    [self.tableView reloadData];
 }
-
+     
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    User *curUser = [TwitterClient sharedInstance].currentUser;
     UITableViewCell *cell = [[UITableViewCell alloc] init];
-    [cell.textLabel setText:@"Title"];
+    [cell.textLabel setText:curUser.name];
     
     return cell;
 }
